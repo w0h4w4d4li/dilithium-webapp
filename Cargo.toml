@@ -1,0 +1,11 @@
+[package]
+name = "dilithium-webapp"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+actix-web = "4.4"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+hex = "0.4"
+crystals-dilithium = { git = "https://github.com/w0h4w4d4li/dilithium" }
