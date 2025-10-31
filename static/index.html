@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dilithium Signature Service</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; background: #f4f4f4; }
+        .container { max-width: 800px; margin: 0 auto; padding: 20px; }
+        header { background: #2c3e50; color: white; padding: 1rem 0; text-align: center; margin-bottom: 2rem; }
+        .card { background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin-bottom: 2rem; }
+        .form-group { margin-bottom: 1rem; }
+        label { display: block; margin-bottom: 0.5rem; font-weight: bold; color: #2c3e50; }
+        input, textarea, button { width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 4px; font-size: 1rem; }
+        textarea { min-height: 100px; resize: vertical; font-family: monospace; }
+        button { background: #3498db; color: white; border: none; cursor: pointer; font-weight: bold; transition: background 0.3s; }
+        button:hover { background: #2980b9; }
+        .result { background: #f8f9fa; padding: 1rem; border-radius: 4px; margin-top: 1rem; font-family: monospace; font-size: 0.9rem; white-space: pre-wrap; word-break: break-all; }
+        .success { color: #27ae60; }
+        .error { color: #e74c3c; }
+        .info { color: #3498db; }
+        .loading { opacity: 0.6; pointer-events: none; }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>🔐 Dilithium Signature Service</h1>
+            <p>Post-Quantum Cryptography Web Interface</p>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="card">
+            <h2>Sign a Message</h2>
+            <div class="form-group">
+                <label for="message">Message to Sign:</label>
+                <textarea id="message" placeholder="Enter your message here">Hello, Quantum World!</textarea>
+            </div>
+            <button onclick="signMessage()">Generate Signature</button>
+            <div id="signResult" class="result"></div>
+        </div>
+
+        <div class="card">
+            <h2>About Dilithium</h2>
+            <p><strong>Dilithium</strong> is a post-quantum digital signature scheme selected by NIST for standardization.</p>
+            <ul>
+                <li><strong>Security:</strong> Resistant to quantum computer attacks</li>
+                <li><strong>Type:</strong> Lattice-based cryptography</li>
+                <li><strong>Use Case:</strong> Future-proof digital signatures</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        async function signMessage() {
+            const message = document.getElementById('message').value;
+            const button = event.target;
+            const resultDiv = document.getElementById('signResult');
+            
+            if (!message.trim()) {
+                resultDiv.innerHTML = '<span class="error">Please enter a message to sign.</span>';
+                return;
+            }
+
+            // Show loading state
+            button.classList.add('loading');
+            resultDiv.innerHTML = '<span class="info">Signing message...</span>';
+
+            try {
+                const response = await fetch('/sign', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ message })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    resultDiv.innerHTML = `
+                        <span class="success">✅ Signature generated successfully!</span>
+                        
+                        Message: ${data.message}
+                        Message length: ${data.message.length} characters
+                        
+                        Public Key (${data.public_key_size} bytes):
+                        ${data.public_key}
+                        
+                        Signature (${data.signature_size} bytes):
+                        ${data.signature}
+                        
+                        Verification: ${data.verified ? '✅ SUCCESS' : '❌ FAILED'}
+                    `;
+                } else {
+                    resultDiv.innerHTML = `<span class="error">❌ Error: ${data.error || 'Unknown error'}</span>`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<span class="error">❌ Network error: ${error.message}</span>`;
+            } finally {
+                button.classList.remove('loading');
+            }
+        }
+
+        // Allow submitting with Enter key in textarea
+        document.getElementById('message').addEventListener('keydown', function(e) {
+            if (e.ctrlKey && e.key === 'Enter') {
+                signMessage();
+            }
+        });
+    </script>
+</body>
+</html>
